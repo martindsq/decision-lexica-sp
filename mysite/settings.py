@@ -25,7 +25,11 @@ SECRET_KEY = 'django-insecure-mq(mc#zv&vk!zi9ew^_92!fn!xm76uy1^c+9!^tsqc2z8o5y8(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+# On Heroku, it's safe to use a wildcard for `ALLOWED_HOSTS``, since the Heroku router performs
+# validation of the Host header in the incoming HTTP request. On other platforms you may need
+# to list the expected hostnames explicitly to prevent HTTP Host header attacks. See:
+# https://docs.djangoproject.com/en/5.0/ref/settings/#std-setting-ALLOWED_HOSTS
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
