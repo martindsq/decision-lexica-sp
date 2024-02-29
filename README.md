@@ -49,6 +49,7 @@ CREATE DATABASE decisionlexicasp WITH OWNER martin;
 4. Set-up the initial state of the database:
 
 ```
+python manage.py makemigrations
 python manage.py migrate
 python manage.py createsuperuser
 python manage.py seed --mode=refresh
