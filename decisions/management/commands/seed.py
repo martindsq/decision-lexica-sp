@@ -1,6 +1,7 @@
 from django.core.management.base import BaseCommand
 import logging
 import csv
+import ast
 from decisions.models import Stimulus
 
 logger = logging.getLogger(__name__)
@@ -56,4 +57,4 @@ def run_seed(self, mode):
     with open(path) as f:
         reader = csv.reader(f)
         for row in reader:
-            create_stimulus(row[0], row[1], True)
+            create_stimulus(row[0], row[1], ast.literal_eval(row[2]))

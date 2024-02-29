@@ -59,7 +59,7 @@ def index(request):
     			'options': Form.PreferredLanguage.choices
     		}
     	],
-    	'stimuli': {static('terms/' + stimulus.file_name): stimulus.file_name for stimulus in Stimulus.objects.all()
+    	'stimuli': {static('terms/' + stimulus.file_name): {'filename': stimulus.file_name, 'is_word': 1 if stimulus.is_word else 0}for stimulus in Stimulus.objects.all()
     	},
     	'mode': mode,
     	'modes': Form.Mode,

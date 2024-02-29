@@ -6,7 +6,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Frecuencia Léxica</title>
+    <title>Decisión Léxica</title>
     <link rel="shortcut icon" type="image/png" href="{% static 'favicon.ico' %}"/>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-kenU1KFdBIe4zVF0s0G1M5b4hcpxyD9F7jL+jjXkk+Q2h455rYXK/7HAuoJl+0I4" crossorigin="anonymous"></script>
@@ -15,7 +15,6 @@
     <script src="{% static 'jspsych/dist/plugin-browser-check.js' %}"></script>
     <script src="{% static 'jspsych/dist/plugin-survey-html-form.js' %}"></script>
     <script src="{% static 'jspsych/dist/plugin-image-button-response.js' %}"></script>
-    <script src="{% static 'jspsych/dist/plugin-image-keyboard-response.js' %}"></script>
     <script src="{% static 'jspsych/dist/plugin-preload.js' %}"></script>
     <script src="{% static 'jspsych/dist/plugin-call-function.js' %}"></script>
     <script src="{% static 'jspsych/dist/plugin-html-keyboard-response.js' %}"></script>
@@ -51,8 +50,11 @@
       }
     });
 
-    // Likert scale used in the experiment
-    const yesno = ['S', 'N'];
+    // Go-nogo scale used in the experiment
+    const gonogo = ['SI'];
+
+    // Likert scale used in the form
+    const likert = ['1', '2', '3', '4', '5', '6', '7'];
 
     // Video paths corresponding to the stimuli
     const images_mapper = {{ stimuli|safe }};
@@ -68,11 +70,6 @@
     const udelar = '{% static "udelar.png" %}'
     const cibpsi = '{% static "cibpsi.png" %}'
     const mcc = '{% static "mcc.png" %}'
-
-    // Check if user is executing the experiment in a mobile device
-    const is_mobile = /Mobi/i.test(window.navigator.userAgent);
-
-    const prompt = '<p>¿Es real esta palabra?</p>'.concat(is_mobile ? '' : '<p class="small">&#x0053;&#x20E3; o &#x004E;&#x20E3; en el teclado</p>');
 
     var timeline = [];
 
@@ -91,7 +88,8 @@
     const instructions = {
         type: jsPsychInstructions,
         pages: function() {
-          const example_image = images[Math.floor(Math.random() * images.length)];
+          const words = images.reduce((filtered, key) => images_mapper[key].is_word == 1 ? filtered.concat(key) : filtered, []);
+          const example_image = words[Math.floor(Math.random() * words.length)];
           return [
           `
           <div class="mb-4">
@@ -102,7 +100,7 @@
               <div class="col-md-9 mx-auto text-start">
                 <small>
                   <p class="lead">Este estudio lo realizan investigadores del Centro de Investigación Básica en Psicología de la Universidad de la República.</p>
-                  <p>La presente investigación tiene como objetivo <strong>conocer con que efectividar reconocemos algunas palabras del español rioplatense</strong>. Si aceptas participar en la investigación, <strong>deberás discriminar una lista de {{ sample_size }} palabras en español rioplatense de acuerdo a si son palabras reales o inventadas, la tarea tendrá una duración máxima de {{ timeout }} minutos y solamente registramos las puntuaciones en una base de datos online.</strong></p>
+                  <p>La presente investigación tiene como objetivo <strong>conocer con que efectividad reconocemos algunas palabras del español rioplatense</strong>. Si aceptas participar en la investigación, <strong>deberás discriminar palabras reales de una lista de {{ sample_size }} palabras en español rioplatense, la tarea tendrá una duración máxima de {{ timeout }} minutos y solamente registramos las puntuaciones en una base de datos online.</strong></p>
                 </small>
                 <div class="d-grid gap-2 d-sm-flex justify-content-sm-center py-5">
                   <div class="px-4 gap-3">
@@ -161,13 +159,14 @@
             <div class="row">
               <div class="col-md-9 mx-auto text-start">
                 <small>
-                  <p>En esta tarea queremos saber con qué efectividad reconoces algunas palabras en español rioplatense. Verás una lista de palabras y tendrás que discriminar cada palabra de acuerdo a si es una palabra real o una palabra inventada:</p>
+                  <p>En esta tarea queremos saber con qué efectividad reconoces algunas palabras en español rioplatense. Verás una lista de palabras y tendrás que discriminar si es real cada palabra:</p>
                   <ul class="list-unstyled">
-                    <li>La letra S significa que la palabra <strong>es real</strong></li>
-                    <li>La letra N significa que la palabra <strong>es inventada</strong></li>
+                    <li>La palabra <strong>es real</strong> apreta el boton <code>SI</code></li>
+                    <li>Si crees que la palabra <strong>es inventada</strong> no apretes nada <small>(la tarea avanzará sola pasada los dos segundos)</small></li>
                   </ul>
-                  <p>Por ejemplo, si reconoces que PAN es una palabra real, entonces seleccionarias la letra S. Algunas palabras, a pesar de que se pueden pronunciar, no existen en el diccionario, como por ejemplo FAC, en ese caso seleccionarias la letra N.</p>
+                  <p>Por ejemplo, si reconoces que PAN es una palabra real, entonces apretarías el botón <code>SI</code>. Algunas palabras, a pesar de que se pueden pronunciar, no existen en el diccionario, como por ejemplo FAC, en ese caso no apretarías nada.</p>
                   <p>No importa si no conoces el significado de la palabra, solo discrimina de acuerdo a si la palabra existe o no.</p>
+                  <p><strong>Intenta responder lo más rápido posible sin cometer errores.</strong></p>
                 </small>
               </div>
             </div>
@@ -184,8 +183,8 @@
                   <img src="${example_image}"/>
                 </div>
                 <div class="py-3" display="none">
-                  <div id="example-button-container" class="row" tabindex="0">
-                    ${ (is_mobile ? yesno : []).reduce((x, y) => x + `
+                  <div id="example-button-container" class="row">
+                    ${ gonogo.reduce((x, y) => x + `
                       <div class="col px-0">
                         <button class="btn btn-outline-secondary rounded-circle example-button">${y}</button>
                       </div>
@@ -194,7 +193,8 @@
                   </div>
                 </div>
                 <div>
-                  ${ prompt }
+                  <p>¿Es real esta palabra?</p>
+                  <p><small>Durante el experimento, tendrás 2 segundos para contestar</small></p>
                 </div>
               </div>
             </div>
@@ -241,7 +241,7 @@
                       <option value="N/A">Prefiero no responder</option>
                     </select>
                   {% elif step.type == 'likert' %}
-                    ${ yesno.reduce((x, y) => x + `
+                    ${ likert.reduce((x, y) => x + `
                       <div class="form-check">
                         <input class="form-check-input" type="radio" name="{{ step.hint }}" id="inlineRadio${y}" value="${y}" {% if step.required %}required {% endif %}>
                         <label class="form-check-label" for="inlineRadio${y}">${y}</label>
@@ -304,12 +304,13 @@
       trial_duration: 300
     };
     const trial = {
-      type: is_mobile ?jsPsychImageButtonResponse : jsPsychImageKeyboardResponse,
+      type: jsPsychImageButtonResponse,
       stimulus: jsPsych.timelineVariable('stimulus'),
-      choices: yesno,
+      choices: gonogo,
       button_html: '<button class="btn btn-outline-secondary rounded-circle my-3">%choice%</button>',
-      prompt: prompt,
+      prompt: '<p>¿Es real esta palabra?</p>',
       render_on_canvas: false,
+      trial_duration: 2000,
       css_classes: ['py-5'],
       on_finish: function() {
         // at the end of each trial, update the progress bar
@@ -355,7 +356,7 @@
             'education': survey_response.education,
             'preferred_language': survey_response.preferred_language,
             'replies': trial_responses.map(x => ({
-              'stimulus': images_mapper[x.stimulus[0]], 'decision': yesno[x.response], 
+              'stimulus': images_mapper[x.stimulus[0]].filename, 'decision': x.response == null ? null : gonogo[x.response] == gonogo[0], 
               'rt': x.rt,
               'te': x.time_elapsed
             }))
