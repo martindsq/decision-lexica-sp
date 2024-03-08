@@ -264,17 +264,19 @@
       type: jsPsychHtmlButtonResponse,
       stimulus: function() {
         return `
-          <div class="row py-5">
+          <div class="row py-4">
             <div class="col-12 col-md-8 col-lg-6 mx-auto">
-              <div class="col-12 mx-auto pt-3">
-                <p>Apreta el botón <strong>Empezar</strong> para empezar el experimento.</p>
+              <div class="ratio ratio-4x3">
+                <div class="d-table">
+                  <p class="d-table-cell align-middle">Apreta el botón <strong>Empezar</strong> para empezar el experimento.</p>
+                </div>
               </div>
             </div>
           </div>
         `
       },
       choices: ['Empezar'],
-      button_html: ['<button type="button" class="btn btn-primary">%choice%</button>'],
+      button_html: ['<button type="button" class="btn btn-primary my-3">%choice%</button>'],
       on_start: function() {
         // set progress bar to 0 at the start of experiment
         jsPsych.drawProgressBar();
