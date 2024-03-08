@@ -306,6 +306,9 @@
     const trial = {
       type: jsPsychImageButtonResponse,
       stimulus: jsPsych.timelineVariable('stimulus'),
+      data: {
+        correct_response: jsPsych.timelineVariable('correct_response')
+      },
       choices: gonogo,
       button_html: '<button class="btn btn-outline-secondary rounded-circle my-3">%choice%</button>',
       prompt: '<p>¿Es real esta palabra?</p>',
@@ -321,7 +324,7 @@
     };
     const procedure = {
       timeline: [fixation, trial],
-      timeline_variables: images.map(x => ({stimulus: [x]})),
+      timeline_variables: images.map(x => ({stimulus: [x], correct_response: images_mapper[x].is_word })),
       randomize_order: true,
       sample: {
           type: 'without-replacement',
@@ -356,7 +359,8 @@
             'education': survey_response.education,
             'preferred_language': survey_response.preferred_language,
             'replies': trial_responses.map(x => ({
-              'stimulus': images_mapper[x.stimulus[0]].filename, 'decision': x.response == null ? null : gonogo[x.response] == gonogo[0], 
+              'stimulus': images_mapper[x.stimulus[0]].filename, 
+              'decision': x.response == null ? null : gonogo[x.response] == gonogo[0], 
               'rt': x.rt,
               'te': x.time_elapsed
             }))
@@ -382,15 +386,34 @@
 
     const debrief = {
       type: jsPsychHtmlButtonResponse,
-      stimulus: `
-        <div class="px-4 py-5 text-center">
-          <div class="col-lg-6 mx-auto">
-            <p>Has terminado</p>
-            <p>¡Muchas gracias por participar!</p>
-            <p>Apreta el botón <strong>Cerrar</strong> para cerrar el experimento.</p>
-          </div>
-        </div>
-      `,
+      stimulus: function() {
+        const values = jsPsych.data.get().values();
+        const trial_responses = values.filter(x => x['trial_type'] == 'image-button-response' && x['stimulus'] !== undefined);
+        let score = trial_responses.reduce((sum, x) => {
+          let response = x.response == null ? null : gonogo[x.response] == gonogo[0];
+          let correct_response = x.correct_response;
+          let hit = ((correct_response && response) || (!correct_response && response == null)) ? 1 : 0;
+          let fast = hit > 0 && x.rt < 1000 ? 0.5 : 0;
+          let penalty = hit > 0 ? 0 : 0.5;
+          return sum + hit + fast - penalty; 
+        }, 0);
+        let max_score = trial_responses.reduce((sum, x) => {
+          let hit = 1
+          let fast = 0.5;
+          let penalty = 0;
+          return sum + hit + fast - penalty; 
+        }, 0);
+        let percent = Math.round(score * 100 / max_score);
+        return `
+          <div class="px-4 py-5 text-center">
+            <div class="col-lg-6 mx-auto">
+              <p>Has terminado</p>
+              <p class="lead">Tu puntuación fue de <mark>${percent}</mark>.</p>
+              <p>¡Muchas gracias por participar!</p>
+              <p>Apreta el botón <strong>Cerrar</strong> para cerrar el experimento.</p>
+            </div>
+          </div>`
+      },
       choices: ['Cerrar'],
       button_html: '<button type="button" class="btn btn-primary">%choice%</button>'
     };
