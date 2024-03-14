@@ -6,6 +6,7 @@ class Stimulus(models.Model):
 	term = models.CharField(max_length=50, verbose_name=_('Term'))
 	file_name = models.CharField(max_length=50, verbose_name=_('Filename'))
 	is_word = models.BooleanField(default=True, verbose_name=_('Is word'))
+	frequency = models.IntegerField(default=1,validators=[MinValueValidator(1), MaxValueValidator(7)], verbose_name=_('Frequency'))
 
 	class Meta:
 		verbose_name = _('Stimulus')

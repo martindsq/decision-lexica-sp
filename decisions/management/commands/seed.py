@@ -32,10 +32,10 @@ def clear_data():
     Stimulus.objects.all().delete()
 
 
-def create_stimulus(term, filename, is_word):
+def create_stimulus(term, filename, frequency, is_word):
     """Creates an address object combining different elements from the list"""
     logger.info("Creating stimulus")
-    stimulus = Stimulus(term=term, file_name=filename, is_word=is_word)
+    stimulus = Stimulus(term=term, file_name=filename, is_word=is_word, frequency=frequency)
     stimulus.save()
     logger.info("{} stimulus created.".format(stimulus))
 
@@ -57,4 +57,4 @@ def run_seed(self, mode):
     with open(path) as f:
         reader = csv.reader(f)
         for row in reader:
-            create_stimulus(row[0], row[1], ast.literal_eval(row[2]))
+            create_stimulus(row[0], row[1], row[2], ast.literal_eval(row[3]))

@@ -126,7 +126,12 @@ caption:"word" word.png
 
 4. Place all the generated PNG files in the folder at `static/terms`
 
-5. Update the  CSV file at `decisions/management/commands/seed.csv`
+5. Update the  CSV file at `decisions/management/commands/seed.csv`. This
+CSV file contains the following columns (in order): word, image filename,
+lexical frequency (a number from 1 to 7 where 7 is associated to 
+high-frequency and 1 to low-frequency words), and finally, True or False
+whether the stimulus is a real word or not. The last two columns are used
+to display a score at the end of the experiment.
 
 6. Activate the
 [virtual environment](https://docs.python.org/3/library/venv.html):

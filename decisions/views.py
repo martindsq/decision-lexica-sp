@@ -3,6 +3,7 @@ from django.template import loader
 from django.http import HttpResponse
 from django.views.decorators.csrf import csrf_protect
 from django.templatetags.static import static
+from django.db.models import Avg
 from rest_framework.viewsets import ModelViewSet
 from .apps import DecisionsConfig
 from .models import Form, Stimulus
@@ -59,8 +60,14 @@ def index(request):
     			'options': Form.PreferredLanguage.choices
     		}
     	],
-    	'stimuli': {static('terms/' + stimulus.file_name): {'filename': stimulus.file_name, 'is_word': 1 if stimulus.is_word else 0}for stimulus in Stimulus.objects.all()
+    	'stimuli': {
+    		static('terms/' + stimulus.file_name): {
+    			'filename': stimulus.file_name, 
+    			'is_word': 1 if stimulus.is_word else 0,
+    			'frequency': stimulus.frequency, 
+    		} for stimulus in Stimulus.objects.all()
     	},
+    	'mean_frequency': Stimulus.objects.aggregate(avg = Avg("frequency"))["avg"],
     	'mode': mode,
     	'modes': Form.Mode,
     	'timeout': options.online_timeout if mode == Form.Mode.ONLINE else options.offline_timeout if mode == Form.Mode.OFFLINE else options.debug_timeout,
